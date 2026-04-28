@@ -1,0 +1,39 @@
+name: Automatització dades Open-Meteo
+
+on:
+  schedule:
+    # Punt 9: Executar cada dia a les 23:59 (format cron)
+    - cron: '59 23 * * *'
+  # Permet executar-lo manualment des de la pestanya Actions per provar-ho
+  workflow_dispatch:
+
+jobs:
+  run-weather-script:
+    runs-on: ubuntu-latest
+    
+    # Punt 10: Permisos per poder pujar fitxers al repositori
+    permissions:
+      contents: write
+
+    steps:
+      - name: Baixar codi del repositori
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instal·lar llibreria requests
+        run: pip install requests
+
+      - name: Executar programa de clima
+        run: python clima.py
+
+      - name: Guardar i pujar el fitxer JSON
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add temp_*.json
+          git commit -m "Afegides dades climàtiques automàtiques" || echo "Sense canvis per pujar"
+          git push
